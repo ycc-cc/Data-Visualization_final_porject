@@ -1,11 +1,16 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-from datetime import datetime
 import warnings
 warnings.filterwarnings('ignore')
+
+# Configure matplotlib for Streamlit Cloud
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from datetime import datetime
 
 # Page configuration
 st.set_page_config(
@@ -83,12 +88,22 @@ uploaded_file = st.sidebar.file_uploader(
 if uploaded_file is not None:
     data = load_forecast_data(uploaded_file)
 else:
-    # Default path
-    default_path = '/Users/changyichun/Desktop/2025 Fall/Data Visualization /wind_power_forecast_combined.xlsx'
-    st.sidebar.info("Using default file path")
-    try:
-        data = load_forecast_data(default_path)
-    except:
+    # Default path - try both deployment and local paths
+    default_paths = [
+        'wind_power_forecast_combined.xlsx',  # For deployment
+        '/Users/changyichun/Desktop/2025 Fall/Data Visualization /wind_power_forecast_combined.xlsx'  # For local
+    ]
+    
+    data = None
+    for default_path in default_paths:
+        try:
+            data = load_forecast_data(default_path)
+            st.sidebar.success("✅ File loaded successfully")
+            break
+        except:
+            continue
+    
+    if data is None:
         st.warning("⚠️ Please upload the forecast Excel file to continue")
         data = None
 
